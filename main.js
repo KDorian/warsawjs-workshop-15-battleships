@@ -7,10 +7,7 @@ class Component {
 };
 
 class CellComponent extends Component {
-  constructor({
-    location,
-    handleCellClick
-  }) {
+  constructor({ location, handleCellClick }) {
     super();
     this._state = 'unknown';
     this._element = document.createElement('td');
@@ -72,7 +69,9 @@ class GameController {
   constructor(model) {
     this._model = model;
   }
-  handleCellClick({ location }) {
+  handleCellClick({
+    location
+  }) {
     this._model.fireAt(location);
   }
 }
@@ -80,7 +79,7 @@ class GameController {
 // ### Models ###
 
 class CellModel {
-  constructor({ hasShip }) {
+  constructor(hasShip) {
     this._hasShip = hasShip;
     this._firedAt = false;
   }
@@ -99,27 +98,57 @@ class BoardModel {
   constructor({ size = 8 } = {}) {
     this._cells = {};
     for (let i = 0; i < size; i += 1) {
-      for (let j=0; j < size; j += 1) {
-        this._cells[`${i}x${j}`] = new CellModel({ hasShip : false});
+      for (let j = 0; j < size; j += 1) {
+        let hasShip;
+        if (Math.random() < 0.2) {
+          hasShip = true;
+        } else {
+          hasShip = false;
+        }
+        this._cells[`${i}x${j}`] = new CellModel( hasShip );
       }
     }
+    // Initialize an empty observer map.
+    this._observers = {};
   }
 
   fireAt(location) {
     const target = this._cells[`${location.row}x${location.column}`];
     const firingResult = target.fire();
-    console.log(this);
-    //TODO: Deliver the changes to view!
+    if (firingResult) {
+      this._notifyObservers('firedAt', { location, firingResult });
+    }
+  }
+
+  _notifyObservers(type, data) {
+    // Run all saved observers for given type.
+    (this._observers[type] || []).forEach(function(observer) {
+      observer(data);
+    });
+  }
+
+  addObserver(type, observeFunction) {
+    // Save the observer function for running later.
+    if (!this._observers[type]) {
+      this._observers[type] = [];
+    }
+    this._observers[type].push(observeFunction);
   }
 }
 
 let myController;
+
 function handleCellClick(...args) {
   myController.handleCellClick.apply(myController, args);
 }
-const boardView = new BoardComponent({ handleCellClick });
+const boardView = new BoardComponent({
+  handleCellClick
+});
 const boardModel = new BoardModel();
 myController = new GameController(boardModel);
+boardModel.addObserver('firedAt', function({ location, firingResult }) {
+  boardView.setCellState(location, firingResult);
+});
 
 const boardContainer = document.getElementById('boardContainer');
 boardContainer.appendChild(boardView.getElement());
