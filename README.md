@@ -1,1 +1,1 @@
-# warsawjs-workshop-15-battlesips
+# warsawjs-workshop-15-battleships
