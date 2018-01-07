@@ -1,22 +1,3 @@
-// const gameContainer = document.querySelector('#game');
-// const  cell = document.createElement('div');
-// const textNode = document.createTextNode('Hello world');
-// cell.appendChild(textNode);
-// // cell.textContext = 'Hello World';
-// gameContainer.appendChild(cell);
-//
-// cell.addEventListener('click', function() {
-//   cell.textContent = 'clicked';
-// });
-//
-// // let onCLick = function onClick() {
-// //   cell.textContent = 'Clkicked';
-// // };
-// //
-// // cell.addEventListener('click', onCLick);
-//
-// //add clickeable widget that changes content
-
 'use strict'
 
 class Component {
@@ -85,29 +66,60 @@ class BoardComponent extends Component {
 
 }
 
+// ### Controller ###
 
 class GameController {
-  constructor(board) {
-    this._board = board;
+  constructor(model) {
+    this._model = model;
   }
   handleCellClick({ location }) {
-    this._board.setCellState(location, 'miss');
+    this._model.fireAt(location);
+  }
+}
+
+// ### Models ###
+
+class CellModel {
+  constructor({ hasShip }) {
+    this._hasShip = hasShip;
+    this._firedAt = false;
+  }
+
+  fire() {
+    // Guard clause
+    if (this._firedAt) {
+      return undefined;
+    }
+    this._firedAt = true;
+    return (this._hasShip ? 'hit' : 'miss');
+  }
+}
+
+class BoardModel {
+  constructor({ size = 8 } = {}) {
+    this._cells = {};
+    for (let i = 0; i < size; i += 1) {
+      for (let j=0; j < size; j += 1) {
+        this._cells[`${i}x${j}`] = new CellModel({ hasShip : false});
+      }
+    }
+  }
+
+  fireAt(location) {
+    const target = this._cells[`${location.row}x${location.column}`];
+    const firingResult = target.fire();
+    console.log(this);
+    //TODO: Deliver the changes to view!
   }
 }
 
 let myController;
-
 function handleCellClick(...args) {
   myController.handleCellClick.apply(myController, args);
 }
-
-// const myCell = new CellComponent({
-//   handleCellClick,
-//   location: 0
-// });
-
-const board = new BoardComponent({ handleCellClick });
-myController = new GameController(board);
+const boardView = new BoardComponent({ handleCellClick });
+const boardModel = new BoardModel();
+myController = new GameController(boardModel);
 
 const boardContainer = document.getElementById('boardContainer');
-boardContainer.appendChild(board.getElement());
+boardContainer.appendChild(boardView.getElement());

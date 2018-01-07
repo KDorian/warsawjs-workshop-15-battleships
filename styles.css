@@ -11,3 +11,7 @@ td.cell_unknown {
 td.cell_miss {
   background-color: #0000cc;
 }
+
+td.cell_hit {
+  background-color: #ff0000;
+}
