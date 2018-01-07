@@ -1,0 +1,13 @@
+td {
+  width: 40px;
+  height: 40px;
+  text-align: center;
+}
+
+td.cell_unknown {
+  background-color: #DDD;
+}
+
+td.cell_miss {
+  background-color: #0000cc;
+}
